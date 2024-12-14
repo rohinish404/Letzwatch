@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from uuid import UUID
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 class Movie(BaseModel):
     adult: bool
@@ -86,10 +87,14 @@ class TokenSchema(BaseModel):
     access_token: str
     refresh_token: str
     
-    
+
 class TokenPayload(BaseModel):
     sub: str = None
     exp: int = None
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class UserAuth(BaseModel):
@@ -99,7 +104,11 @@ class UserAuth(BaseModel):
     
 
 class UserOut(BaseModel):
-    id: UUID
+    _id: UUID
+    username: str
+    hashed_password: str
+    created_at: datetime
+    updated_at: datetime
     email: str
 
 

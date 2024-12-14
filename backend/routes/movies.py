@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from .schemas import MovieSearchResponse, Movie, MovieDetails, Trending
 import requests
 from typing import List, Optional, Literal
-
+from deps import get_current_user
 router = APIRouter(
     tags=["Movies Routes"]
 )
@@ -46,5 +46,10 @@ async def get_trending(time_window: Literal["week"]):
     response = requests.get(url, headers=headers)
     print(response.text)
     return response.json()
+
+
+@router.get("/watchlist/{user_id}")
+async def get_watchlist(user_id: int = Depends(get_current_user)):
+    pass
 
 
