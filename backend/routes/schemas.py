@@ -112,5 +112,12 @@ class UserOut(BaseModel):
     email: str
 
 
-class SystemUser(UserOut):
-    password: str
+
+# Watchlist request schema
+class WatchlistAddRequest(BaseModel):
+    movie_id: int  # ID of the movie to add to the watchlist
+
+# Watchlist response schema
+class WatchlistResponse(BaseModel):
+    user_id: int
+    movies: List[int]

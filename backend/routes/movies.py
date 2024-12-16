@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends
-from .schemas import MovieSearchResponse, Movie, MovieDetails, Trending
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from .schemas import MovieSearchResponse, Movie, MovieDetails, Trending, WatchlistAddRequest, WatchlistResponse
 import requests
 from typing import List, Optional, Literal
 from deps import get_current_user
+from models import User
 router = APIRouter(
     tags=["Movies Routes"]
 )
-
+from models import Watchlist
+from database import get_db
 @router.get("/search", response_model=Optional[MovieSearchResponse])
 async def get_movies(query: str,
     include_adult: bool = False,
@@ -48,8 +51,61 @@ async def get_trending(time_window: Literal["week"]):
     return response.json()
 
 
-@router.get("/watchlist/{user_id}")
-async def get_watchlist(user_id: int = Depends(get_current_user)):
-    pass
+@router.post("/watchlist/{movie_id}", response_model=WatchlistResponse)
+async def add_to_watchlist(movie_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.get("user_id")
+    existing_entry = db.query(Watchlist).filter(
+        Watchlist.user_id == user_id, 
+        Watchlist.movie_id == movie_id
+    ).first()
+    if existing_entry:
+        raise HTTPException(status_code=400, detail="Movie already in watchlist")
+    
+    new_entry = Watchlist(user_id=user_id, movie_id=movie_id)
+    db.add(new_entry)
+    db.commit()
+    db.refresh(new_entry)
+
+    watchlist_movie_ids = db.query(Watchlist.movie_id).filter(Watchlist.user_id == user_id).all()
+    movie_ids = [movie_id[0] for movie_id in watchlist_movie_ids] 
+
+    watchlist_resp = WatchlistResponse(user_id=user_id, movies=movie_ids)
+    return watchlist_resp
+
+@router.delete("/watchlist/{movie_id}", response_model=WatchlistResponse)
+def remove_from_watchlist(
+    movie_id: int, 
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    user_id =  current_user.get("user_id")
+    entry = db.query(Watchlist).filter(Watchlist.user_id == user_id, Watchlist.movie_id == movie_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Movie not in watchlist")
+
+    # Remove the movie
+    db.delete(entry)
+    db.commit()
+
+    watchlist_movies = db.query(Watchlist.movie_id).filter(
+        Watchlist.user_id == user_id
+    ).all()
+    movie_ids = [movie_id[0] for movie_id in watchlist_movies] 
+    return {"user_id": user_id, "movies": movie_ids}
+
+@router.get("/watchlist/all")
+def get_watchlist(
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    user_id =  current_user.get("user_id")
+    watchlist_movies = db.query(Watchlist.movie_id).filter(
+        Watchlist.user_id == user_id
+    ).all()
+    movie_ids = [movie_id[0] for movie_id in watchlist_movies] 
+    return {"user_id": user_id, "movies": movie_ids}
+
+
+
 
 
