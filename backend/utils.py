@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Union, Any
 from jose import jwt
+from fastapi import Depends
 from dotenv import load_dotenv
 load_dotenv
 

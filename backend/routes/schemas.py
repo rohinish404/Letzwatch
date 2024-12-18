@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel
 from uuid import UUID
 from pydantic import BaseModel, Field
@@ -48,11 +48,16 @@ class SpokenLanguage(BaseModel):
     iso_639_1: str
     name: str
 
+class Collection(BaseModel):
+    id: int
+    name: str
+    poster_path: str
+    backdrop_path: str
 
 class MovieDetails(BaseModel):
     adult: bool
     backdrop_path: Optional[str]
-    belongs_to_collection: Optional[str]
+    belongs_to_collection: Optional[Union[Collection, str]]
     budget: int
     genres: List[Genre]
     homepage: Optional[str]

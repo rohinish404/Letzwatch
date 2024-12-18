@@ -6,6 +6,11 @@ from models import User
 from sqlalchemy.orm import Session
 from database import get_db
 from deps import get_current_user
+from utils import (
+    ALGORITHM,
+    JWT_SECRET_KEY
+)
+from jose import JWTError, jwt
 router = APIRouter(
     tags=["User Routes"]
 )
@@ -26,7 +31,7 @@ def signup(user: UserAuth, db: Session = Depends(get_db)):
 
 @router.post('/login', summary="Create access and refresh tokens for user", response_model=TokenSchema)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
+    user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user:
         raise HTTPException(
@@ -52,3 +57,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 @router.get('/me', summary='Get details of currently logged in user')
 async def get_me(user: User = Depends(get_current_user)):
     return user
+
+    
+# @router.get('/verify_token/{token}', summary='verify the token from frontend')
+# async def verify_user_token(token: str):
+#     verify_token(token=token)
+#     return {"message": "Token is valid!"}
