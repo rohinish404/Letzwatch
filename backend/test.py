@@ -1,17 +1,6 @@
-import requests
 
-url = "https://api.themoviedb.org/3/search/movie?include_adult=false&language=en-US&page=1"
+from utils import decode_token
 
-headers = {
-    "accept": "application/json",
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
-}
 
-params = {
-    "query": "Jack Reacher"
-}
-
-response = requests.get(url, headers=headers, params=params)
-
-print(response.text)
+print(decode_token('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImVtYWlsIjoiYW5pc2hAZ21haWwuY29tIiwidXNlcl9pZCI6M30sImV4cCI6MTczNzI4MDg3OCwicmVmcmVzaCI6dHJ1ZX0.r8IidDwTh4fOy1jKwscZZsfwGOliZHisqALR16Ufguo'))
 

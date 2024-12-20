@@ -1,6 +1,8 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '@/api';
+import Cookies from 'js-cookie';
 
 interface LoginPageProps {
     onLogin: () => void;
@@ -20,7 +22,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin })=> {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/auth/login', 
+            const response = await api.post('/auth/login', 
                 formDetails
             , 
         {
@@ -30,6 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin })=> {
         });
             console.log('Login successful:', response.data);
             localStorage.setItem('token', response.data.access_token)
+            Cookies.set("token", response.data.refresh_token, { expires: 30 });
             onLogin();
             navigate('/');
         } catch (err: any) {
@@ -37,6 +40,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin })=> {
             setError(err.response?.data?.message || 'Login failed. Please try again.');
         }
     };
+
+
 
     return (
         <div className="max-w-md mx-auto mt-10">

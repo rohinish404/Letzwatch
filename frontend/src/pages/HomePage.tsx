@@ -4,6 +4,7 @@ import { Movie } from '@/types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { SkeletonCard } from '@/components/SkeletonCard';
+import api from '@/api';
 interface HomePageProps {
     isLoggedIn: boolean;
 }
@@ -20,8 +21,6 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn }) => {
     //     setSelectedMovie(null);
     // };
 
-
-    const token = localStorage.getItem('token')
     useEffect(() => {
         axios.get('http://localhost:8000/api/v1/movies/trending/week')
             .then(response => {
@@ -33,11 +32,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn }) => {
     }, []);
 
     useEffect(() => {
-        axios.get('http://localhost:8000/api/v1/movies/watchlist/all',
-            {
-                headers: { Authorization: `Bearer ${token}` }
-            }
-        )
+        api.get('movies/watchlist/all')
             .then(async response => {
                 const movieIds = response.data.movies;
                 const detailsPromises = movieIds.map((movieId: number) =>
