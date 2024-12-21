@@ -32,6 +32,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn }) => {
     }, []);
 
     useEffect(() => {
+        if (!isLoggedIn) return;
         api.get('movies/watchlist/all')
             .then(async response => {
                 const movieIds = response.data.movies;
@@ -46,7 +47,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn }) => {
             .catch(error => {
                 console.error(error);
             });
-    }, []);
+    }, [isLoggedIn]);
 
     return (
         <div>

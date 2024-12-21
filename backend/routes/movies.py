@@ -12,9 +12,8 @@ from models import Watchlist
 from database import get_db
 @router.get("/search", response_model=Optional[MovieSearchResponse])
 async def get_movies(query: str,
-    include_adult: bool = False,
-    page: int = 1):
-    url = f"https://api.themoviedb.org/3/search/movie?include_adult={include_adult}&language=en-US&page={page}"
+    include_adult: bool = False):
+    url = f"https://api.themoviedb.org/3/search/movie?include_adult={include_adult}&language=en-US&page=1"
 
     headers = {
         "accept": "application/json",

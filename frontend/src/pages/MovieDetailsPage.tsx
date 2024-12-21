@@ -15,17 +15,18 @@ export const MovieDetailsPage: React.FC = () => {
       .catch(error => {
         console.error(error);
       });
-  }, []);       
+  }, []);
 
   if (!movie) {
     return <div>Movie not found</div>;
   }
 
+
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="relative">
         <img src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`} alt={movie.title} className="w-full h-64 object-cover" />
-        <Link 
+        <Link
           to="/"
           className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-md"
         >
@@ -44,8 +45,19 @@ export const MovieDetailsPage: React.FC = () => {
           <span className="text-lg font-semibold">{movie.vote_count.toFixed(1)}</span>
         </div>
         <p className="text-gray-700 mb-6">{movie.overview}</p>
-        <Link 
-          to="/" 
+        <div className="mb-6">
+          <iframe 
+            src={`https://vidsrc.xyz/embed/movie/${movie.id}`} 
+            title={movie.title} 
+            width="100%" 
+            height="480" 
+            referrerPolicy="origin-when-cross-origin"
+            allowFullScreen 
+            className="rounded-lg"
+          ></iframe>
+        </div>
+        <Link
+          to="/"
           className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
         >
           Back to Home

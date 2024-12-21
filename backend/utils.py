@@ -8,7 +8,7 @@ import logging
 from dotenv import load_dotenv
 load_dotenv
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 30*600
 REFRESH_TOKEN_EXPIRE_MINUTES = 30
 ALGORITHM = "HS256"
 JWT_SECRET_KEY = str(os.getenv('JWT_SECRET_KEY'))
@@ -43,3 +43,10 @@ def decode_token(token: str):
         return token_data
     except jwt.JWTError as e:
         logging.exception(e)
+
+
+
+
+
+
+

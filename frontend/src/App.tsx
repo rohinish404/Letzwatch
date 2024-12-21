@@ -8,6 +8,7 @@ import { SignupPage } from './pages/SignupPage'
 import { getToken, isAuthenticated, refreshAccessToken, removeToken } from './utils';
 import api from './api';
 import { InternalAxiosRequestConfig } from 'axios';
+import SearchResultsPage from './pages/SearchResultsPage';
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
@@ -26,32 +27,30 @@ const App: React.FC = () => {
     setIsLoggedIn(false);
     removeToken();
   };
+  const token = getToken();
   useLayoutEffect(() => {
     const authInterceptor = api.interceptors.request.use((config: CustomAxiosRequestConfig) => {
-      // Check if the route matches the specified ones
-      if (config.url && ['movies/watchlist/all', '/protected-route2'].includes(config.url)) {
+
         if (!config._retry) {
           config._retry = false;
         }
         config.headers.Authorization = 
-          !config._retry && getToken()
-            ? `Bearer ${getToken()}`
+          !config._retry && token
+            ? `Bearer ${token}`
             : config.headers.Authorization;
-      }
+
       return config;
     });
   
     return () => {
       api.interceptors.request.eject(authInterceptor);
     };
-  }, [getToken]);
+  }, [token]);
   
   useLayoutEffect(() => {
     const refreshInterceptor = api.interceptors.response.use(
       (response) => response,
       async (error) => {
-        // Check if the route matches the specified ones
-        if (error.config?.url && ['movies/watchlist/all', '/protected-route2'].includes(error.config.url)) {
           if (error.response && error.response.status === 403) {
             try {
               const newToken = await refreshAccessToken();
@@ -60,8 +59,8 @@ const App: React.FC = () => {
               return api(error.config);
             } catch (err) {
               console.error('Failed to refresh access token:', err);
+              handleLogout();
             }
-          }
         }
         return Promise.reject(error);
       }
@@ -70,7 +69,7 @@ const App: React.FC = () => {
     return () => {
       api.interceptors.response.eject(refreshInterceptor);
     };
-  }, [getToken]);
+  }, [token]);
   
   return (
     <Router>
@@ -82,6 +81,7 @@ const App: React.FC = () => {
             <Route path="/movie/:id" element={<MovieDetailsPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin}/>} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
           </Routes>
         </main>
       </div>
