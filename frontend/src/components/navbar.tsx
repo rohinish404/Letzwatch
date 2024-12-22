@@ -1,28 +1,22 @@
 "use client"
-
 import { useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Link, useNavigate } from 'react-router-dom'
 import { Toggle } from "@/components/ui/toggle"
 import axios from 'axios'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setSearchResponse } from '@/store/search/searchSlice'
+import { RootState } from '@/store/store'
+import { logout } from '@/store/auth/authSlice'
+import Cookies from 'js-cookie'
 
-
-interface NavbarProps {
-  isLoggedIn: boolean;
-  onLogout: () => void;
-}
-
-
-
-export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogout }) => {
+export const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdult, setIsAdult] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
-  
 
   const handleToggleAdult = (checked: boolean) => {
     setIsAdult(checked);
@@ -51,7 +45,9 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogout }) => {
 
   const handleAuthAction = () => {
     if (isLoggedIn) {
-      onLogout();
+      dispatch(logout()); 
+      localStorage.removeItem('token');
+      Cookies.remove('token');
       navigate('/');
     } else {
       navigate('/login');
@@ -65,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onLogout }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold">MovieStream</Link>
+            <Link to="/" className="text-2xl font-bold">LetzWatch</Link>
           </div>
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
             <Toggle className='mr-4' onPressedChange={handleToggleAdult}>Adult</Toggle>

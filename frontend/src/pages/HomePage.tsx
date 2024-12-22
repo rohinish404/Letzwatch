@@ -5,13 +5,13 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { SkeletonCard } from '@/components/SkeletonCard';
 import api from '@/api';
-interface HomePageProps {
-    isLoggedIn: boolean;
-}
+import { RootState } from '@/store/store';
+import { useSelector } from 'react-redux';
 
-const HomePage: React.FC<HomePageProps> = ({ isLoggedIn }) => {
+const HomePage: React.FC = () => {
     const [trending, setTrending] = useState<Movie[]>([]);
     const [watchlist, setWatchlist] = useState<Movie[]>([]);
+    const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
     // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
     // const handleSelectMovie = (movie: Movie) => {

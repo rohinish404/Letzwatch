@@ -2,10 +2,19 @@ import { MovieDetails } from '@/types';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { BsBookmarkPlus, BsBookmarkPlusFill } from "react-icons/bs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import api from '@/api';
 
 export const MovieDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [movie, setMovie] = useState<MovieDetails>();
+  const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
     axios.get(`http://localhost:8000/api/v1/movies/${id}`)
@@ -15,13 +24,30 @@ export const MovieDetailsPage: React.FC = () => {
       .catch(error => {
         console.error(error);
       });
-  }, []);
+
+    api.get(`/movies/watchlist/all`)
+      .then(response => {
+        const watchlistMovies = response.data.movies || [];
+        setIsAdded(watchlistMovies.includes(Number(id)));
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }, [id]);
+
+  const handleAddToWatchlist = () => {
+    api.post(`/movies/watchlist/${id}`)
+      .then(() => {
+        setIsAdded(true);
+      })
+      .catch(error => {
+        console.error('Error adding to watchlist:', error);
+      });
+  };
 
   if (!movie) {
     return <div>Movie not found</div>;
   }
-
-
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="relative">
@@ -37,6 +63,15 @@ export const MovieDetailsPage: React.FC = () => {
       </div>
       <div className="p-6">
         <h2 className="text-3xl font-bold mb-2">{movie.title}</h2>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger> <button onClick={handleAddToWatchlist}>{!isAdded ? <BsBookmarkPlus /> : <BsBookmarkPlusFill />}</button></TooltipTrigger>
+            <TooltipContent>
+              <p>Add to Watchlist</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+       
         <p className="text-gray-600 mb-4">{movie.release_date} | {movie.genres.join(', ')}</p>
         <div className="flex items-center mb-4">
           <svg className="h-5 w-5 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -46,13 +81,13 @@ export const MovieDetailsPage: React.FC = () => {
         </div>
         <p className="text-gray-700 mb-6">{movie.overview}</p>
         <div className="mb-6">
-          <iframe 
-            src={`https://vidsrc.xyz/embed/movie/${movie.id}`} 
-            title={movie.title} 
-            width="100%" 
-            height="480" 
+          <iframe
+            src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
+            title={movie.title}
+            width="100%"
+            height="480"
             referrerPolicy="origin-when-cross-origin"
-            allowFullScreen 
+            allowFullScreen
             className="rounded-lg"
           ></iframe>
         </div>

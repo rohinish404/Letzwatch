@@ -1,6 +1,7 @@
 import React from 'react';
 import { Movie } from '@/types';
 
+
 interface MovieDetailsProps {
   movie: Movie;
 }

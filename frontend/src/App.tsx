@@ -9,24 +9,19 @@ import { getToken, isAuthenticated, refreshAccessToken, removeToken } from './ut
 import api from './api';
 import { InternalAxiosRequestConfig } from 'axios';
 import SearchResultsPage from './pages/SearchResultsPage';
+import { useDispatch } from 'react-redux';
+import { logout, setAuthState } from './store/auth/authSlice';
+
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setIsLoggedIn(isAuthenticated());
-  }, []);
+    dispatch(setAuthState(isAuthenticated()));
+  }, [dispatch]);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    removeToken();
-  };
   const token = getToken();
   useLayoutEffect(() => {
     const authInterceptor = api.interceptors.request.use((config: CustomAxiosRequestConfig) => {
@@ -59,7 +54,7 @@ const App: React.FC = () => {
               return api(error.config);
             } catch (err) {
               console.error('Failed to refresh access token:', err);
-              handleLogout();
+              dispatch(logout());
             }
         }
         return Promise.reject(error);
@@ -74,12 +69,12 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
-        <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />  
+        <Navbar />  
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Routes>
-            <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/movie/:id" element={<MovieDetailsPage />} />
-            <Route path="/login" element={<LoginPage onLogin={handleLogin}/>} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
           </Routes>

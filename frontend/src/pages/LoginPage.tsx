@@ -1,17 +1,16 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/api';
 import Cookies from 'js-cookie';
+import { login } from '@/store/auth/authSlice';
+import { useDispatch } from 'react-redux';
 
-interface LoginPageProps {
-    onLogin: () => void;
-  }
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin })=> {
+export const LoginPage: React.FC = ()=> {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
 
     const formDetails = new URLSearchParams();
@@ -33,7 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin })=> {
             console.log('Login successful:', response.data);
             localStorage.setItem('token', response.data.access_token)
             Cookies.set("token", response.data.refresh_token, { expires: 30 });
-            onLogin();
+            dispatch(login()); 
             navigate('/');
         } catch (err: any) {
             console.error('Login failed:', err);

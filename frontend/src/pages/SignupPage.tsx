@@ -26,7 +26,7 @@ export const SignupPage: React.FC = () => {
                 }
             });
             console.log('Signup successful:', response.data);
-            navigate('/');
+            navigate('/login');
         } catch (err: any) {
             console.error('Signup failed:', err);
             setError(err.response?.data?.message || 'Signup failed. Please try again.');
