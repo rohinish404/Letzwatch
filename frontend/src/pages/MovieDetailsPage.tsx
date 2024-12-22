@@ -35,6 +35,7 @@ export const MovieDetailsPage: React.FC = () => {
       });
   }, [id]);
 
+
   const handleAddToWatchlist = () => {
     api.post(`/movies/watchlist/${id}`)
       .then(() => {
@@ -42,6 +43,16 @@ export const MovieDetailsPage: React.FC = () => {
       })
       .catch(error => {
         console.error('Error adding to watchlist:', error);
+      });
+  };
+
+  const handleRemoveFromWatchlist = () => {
+    api.delete(`/movies/watchlist/${id}`)
+      .then(() => {
+        setIsAdded(false);
+      })
+      .catch(error => {
+        console.error('Error removing from watchlist:', error);
       });
   };
 
@@ -65,7 +76,7 @@ export const MovieDetailsPage: React.FC = () => {
         <h2 className="text-3xl font-bold mb-2">{movie.title}</h2>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger> <button onClick={handleAddToWatchlist}>{!isAdded ? <BsBookmarkPlus /> : <BsBookmarkPlusFill />}</button></TooltipTrigger>
+            <TooltipTrigger> <button onClick={isAdded ? handleRemoveFromWatchlist : handleAddToWatchlist}>{!isAdded ? <BsBookmarkPlus /> : <BsBookmarkPlusFill />}</button></TooltipTrigger>
             <TooltipContent>
               <p>Add to Watchlist</p>
             </TooltipContent>
