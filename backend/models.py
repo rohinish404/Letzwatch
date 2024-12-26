@@ -28,5 +28,7 @@ class Watchlist(Base):
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
 
+
+
      
     

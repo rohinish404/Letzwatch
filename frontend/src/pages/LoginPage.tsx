@@ -4,6 +4,7 @@ import api from '@/api';
 import Cookies from 'js-cookie';
 import { login } from '@/store/auth/authSlice';
 import { useDispatch } from 'react-redux';
+import { store } from '@/store/store';
 
 export const LoginPage: React.FC = ()=> {
     const [username, setUsername] = useState('');
@@ -32,7 +33,7 @@ export const LoginPage: React.FC = ()=> {
             console.log('Login successful:', response.data);
             localStorage.setItem('token', response.data.access_token)
             Cookies.set("token", response.data.refresh_token, { expires: 30 });
-            dispatch(login()); 
+            dispatch(login());   
             navigate('/');
         } catch (err: any) {
             console.error('Login failed:', err);
