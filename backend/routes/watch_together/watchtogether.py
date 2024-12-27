@@ -26,11 +26,10 @@ class RoomManager:
         return room_id
 
     async def add_user_to_room(self, room_id: str, user: User):
+        print(self.rooms)
         room = self.rooms.get(room_id)
         if not room:
-            raise ValueError("Room not found.")  # Handle this gracefully in the WebSocket handler
-        if len(room.users) >= 2:
-            raise ValueError("Room is full.")  # Handle this as well in the WebSocket handler
+            raise ValueError("Room not found.")
         room.users[user.user_id] = user
         await self.notify_users_in_room(room_id, {"event": "user-joined", "userId": user.user_id})
 

@@ -1,7 +1,7 @@
 import { MovieDetails } from '@/types';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BsBookmarkPlus, BsBookmarkPlusFill } from "react-icons/bs";
 import {
   Tooltip,
@@ -19,7 +19,7 @@ export const MovieDetailsPage: React.FC = () => {
   const [movie, setMovie] = useState<MovieDetails>();
   const [isAdded, setIsAdded] = useState(false);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const videoRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get(`http://localhost:8000/api/v1/movies/${id}`)
@@ -61,19 +61,17 @@ export const MovieDetailsPage: React.FC = () => {
       });
   };
 
-  const handlePlay = () => {
-    // const timestamp = videoRef.current.getCurrentTime();
-    // socket.send(JSON.stringify({ type: "play", timestamp }));
-  };
 
-  const handlePause = () => {
-    // const timestamp = videoRef.current.getCurrentTime();/
-    // socket.send(JSON.stringify({ type: "pause", timestamp }));
-  };
-  
-  const handleWatchTogether = () => {
-    api.get
+  const handleWatchTogether = async () => {
+    const roomResponse = await axios.post("http://localhost:8000/api/v1/watch/create-room");
+    const userResponse = await api.get('/auth/me');
+
+    const roomId = roomResponse.data.roomId;
+    const userId = userResponse.data.user_id;
+
+    navigate(`/watch?roomId=${roomId}&userId=${userId}`);
   }
+
 
   if (!movie) {
     return <div>Movie not found</div>;
@@ -96,7 +94,9 @@ export const MovieDetailsPage: React.FC = () => {
         {isLoggedIn ?
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger> <button onClick={isAdded ? handleRemoveFromWatchlist : handleAddToWatchlist}>{!isAdded ? <BsBookmarkPlus /> : <BsBookmarkPlusFill />}</button></TooltipTrigger>
+              <TooltipTrigger asChild> 
+                <button onClick={isAdded ? handleRemoveFromWatchlist : handleAddToWatchlist}>{!isAdded ? <BsBookmarkPlus /> : <BsBookmarkPlusFill />}</button>
+              </TooltipTrigger>
               <TooltipContent>
                 <p>Add to Watchlist</p>
               </TooltipContent>
@@ -105,7 +105,7 @@ export const MovieDetailsPage: React.FC = () => {
           :
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger> <button>{<BsBookmarkPlus />}</button></TooltipTrigger>
+              <TooltipTrigger asChild> <button>{<BsBookmarkPlus />}</button></TooltipTrigger>
               <TooltipContent>
                 <p>Please Login to Add to Watchlist</p>
               </TooltipContent>
@@ -122,7 +122,7 @@ export const MovieDetailsPage: React.FC = () => {
           <span className="text-lg font-semibold">{movie.vote_count.toFixed(1)}</span>
         </div>
         <p className="text-gray-700 mb-6">{movie.overview}</p>
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <iframe
             src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
             title={movie.title}
@@ -133,7 +133,7 @@ export const MovieDetailsPage: React.FC = () => {
             className="rounded-lg"
           ></iframe>
 
-        </div>
+        </div> */}
         <div>
           <button onClick={handleWatchTogether}><GiAerialSignal size={50} /></button>
         </div>
