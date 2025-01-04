@@ -63,13 +63,12 @@ export const MovieDetailsPage: React.FC = () => {
 
 
   const handleWatchTogether = async () => {
-    const roomResponse = await axios.post("http://localhost:8000/api/v1/watch/create-room");
     const userResponse = await api.get('/auth/me');
-
-    const roomId = roomResponse.data.roomId;
     const userId = userResponse.data.user_id;
-
-    navigate(`/watch?roomId=${roomId}&userId=${userId}`);
+    const roomResponse = await axios.post("http://localhost:8000/api/v1/watch/create_room", {"name": String(userId)});
+    const roomId = roomResponse.data.roomId;
+ 
+    navigate(`/stream?roomId=${roomId}&userId=${userId}`);
   }
 
 

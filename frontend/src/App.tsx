@@ -12,6 +12,7 @@ import SearchResultsPage from './pages/SearchResultsPage';
 import { useDispatch } from 'react-redux';
 import { logout, setAuthState } from './store/auth/authSlice';
 import WatchTogether from './pages/WatchTogether';
+import StreamingPage from './pages/StreamingPage';
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -78,6 +79,7 @@ const App: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/stream" element={<StreamingPage />} />
             <Route path="/watch" element={<WatchTogether />} />
           </Routes>
         </main>

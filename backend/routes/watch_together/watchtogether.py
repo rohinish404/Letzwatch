@@ -1,97 +1,148 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from typing import Dict
-import uuid
+from pydantic import BaseModel
+
+from typing import Dict, List
+from dataclasses import dataclass
+
+from socketio import ASGIApp, AsyncServer
 
 router = APIRouter(
     tags=["Watch Together Routes"]
 )
 
-class User:
-    def __init__(self, user_id: str, websocket: WebSocket):
-        self.user_id = user_id
-        self.websocket = websocket
+sio = AsyncServer(cors_allowed_origins=[], async_mode='asgi')
+socket_app = ASGIApp(sio, socketio_path='sockets')
 
+
+@dataclass
+class User:
+    socket_id: str
+    name: str
+
+
+@dataclass
 class Room:
-    def __init__(self):
-        self.users: Dict[str, User] = {}
+    user1: User = None
+    user2: User = None
+
 
 class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
+        self.users: List[User] = []
 
-    def create_room(self) -> str:
-        room_id = str(uuid.uuid4())
+    def create_room(self, room_id: str):
+        if room_id in self.rooms:
+            raise HTTPException(status_code=400, detail="Room already exists")
         self.rooms[room_id] = Room()
-        return room_id
 
-    async def add_user_to_room(self, room_id: str, user: User):
-        print(self.rooms)
+    async def join_room(self, room_id: str, user: User):
         room = self.rooms.get(room_id)
+        
         if not room:
-            raise ValueError("Room not found.")
-        room.users[user.user_id] = user
-        await self.notify_users_in_room(room_id, {"event": "user-joined", "userId": user.user_id})
+            raise HTTPException(status_code=404, detail="Room does not exist")
+        # if room.user2 is not None:
+        #     raise HTTPException(status_code=400, detail="Room is full")
+        # if room.user1 is None:
+        #     room.user1 = user
+        # else:
+            # room.user2 = user
+        
+        self.users.append(user)
+        if len(self.users) < 2:
+            return  
+        room.user1 = self.users[0]
+        room.user2 = self.users[1]
 
-    def remove_user_from_room(self, room_id: str, user_id: str):
-        room = self.rooms.get(room_id)
-        if room and user_id in room.users:
-            del room.users[user_id]
-            if not room.users:
-                del self.rooms[room_id]  # Clean up empty room
+        user1 = room.user1
+        user2 = room.user2
+        
+        await sio.emit('send-offer', {'roomId': room_id}, room=user1.socket_id)
+        await sio.emit('send-offer', {'roomId': room_id}, room=user2.socket_id)
 
-    async def notify_users_in_room(self, room_id: str, message: dict):
-        room = self.rooms.get(room_id)
-        if room:
-            for user in room.users.values():
-                await user.websocket.send_json(message)
+    def get_room(self, room_id: str):
+        return self.rooms.get(room_id)
 
-    async def handle_offer(self, room_id: str, sdp: str, sender_id: str):
-        room = self.rooms.get(room_id)
-        if not room:
-            return
-        for user_id, user in room.users.items():
-            if user_id != sender_id:
-                await user.websocket.send_json({"event": "offer", "sdp": sdp, "roomId": room_id})
-
-    async def handle_answer(self, room_id: str, sdp: str, sender_id: str):
-        room = self.rooms.get(room_id)
-        if not room:
-            return
-        for user_id, user in room.users.items():
-            if user_id != sender_id:
-                await user.websocket.send_json({"event": "answer", "sdp": sdp, "roomId": room_id})
-
-    async def handle_ice_candidate(self, room_id: str, candidate: dict, candidate_type: str, sender_id: str):
-        room = self.rooms.get(room_id)
-        if not room:
-            return
-        for user_id, user in room.users.items():
-            if user_id != sender_id:
-                await user.websocket.send_json({"event": "add-ice-candidate", "candidate": candidate, "type": candidate_type})
 
 room_manager = RoomManager()
 
-@router.post("/create-room")
-async def create_room():
-    room_id = room_manager.create_room()
+
+class JoinRoom(BaseModel):
+    room_id: str
+    name: str
+
+async def join_room(sid, data: JoinRoom):
+    user = User(socket_id=sid, name=data.name)  
+    print(f"socketid - {user.socket_id}")
+    await room_manager.join_room(data.room_id, user)
+
+@sio.event
+async def connect(sid, environ):
+    print(f"Client connected: {sid}")
+
+@sio.event
+async def join(sid, data):
+    await join_room(sid, JoinRoom(room_id=data.get("roomId"), name=data.get("name")))
+
+@sio.event
+async def disconnect(sid):
+    print(f"Client disconnected: {sid}")
+
+
+@sio.event
+async def offer(sid, data):
+    room_id = data.get("roomId")
+    sdp = data.get("sdp")
+    room = room_manager.get_room(room_id)
+    if not room:
+        return
+
+    receiving_user = room.user2 if room.user1.socket_id == sid else room.user1
+    await sio.emit("offer", {"sdp": sdp, "roomId": room_id}, room=receiving_user.socket_id)
+
+
+@sio.event
+async def answer(sid, data):
+    room_id = data.get("roomId")
+    sdp = data.get("sdp")
+    room = room_manager.get_room(room_id)
+    if not room:
+        return
+
+    receiving_user = room.user2 if room.user1.socket_id == sid else room.user1
+    await sio.emit("answer", {"sdp": sdp, "roomId": room_id}, room=receiving_user.socket_id)
+
+
+@sio.event
+async def add_ice_candidate(sid, data):
+    room_id = data.get("roomId")
+    candidate = data.get("candidate")
+    candidate_type = data.get("type")
+    room = room_manager.get_room(room_id)
+    if not room:
+        return
+
+    receiving_user = room.user2 if room.user1.socket_id == sid else room.user1
+    await sio.emit("add_ice_candidate", {
+        "candidate": candidate,
+        "type": candidate_type,
+        "roomId": room_id
+    }, room=receiving_user.socket_id)
+
+
+class CreateRoom(BaseModel):
+    name: str
+
+@router.post("/create_room")
+async def create_room(data: CreateRoom):
+    from uuid import uuid4
+    room_id = str(uuid4())  # Generate unique room ID
+    user = User(socket_id=None, name=data.name)  # socket_id will be set on connection
+    room_manager.create_room(room_id)
     return JSONResponse(content={"roomId": room_id})
 
-@router.websocket("/room/{room_id}/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str, user_id: str):
-    await websocket.accept()
-    user = User(user_id, websocket)
-    try:
-        await room_manager.add_user_to_room(room_id, user)
-        while True:
-            data = await websocket.receive_json()
-            event = data.get("event")
-            if event == "offer":
-                await room_manager.handle_offer(room_id, data["sdp"], user_id)
-            elif event == "answer":
-                await room_manager.handle_answer(room_id, data["sdp"], user_id)
-            elif event == "add-ice-candidate":
-                await room_manager.handle_ice_candidate(room_id, data["candidate"], data["type"], user_id)
-    except WebSocketDisconnect:
-        room_manager.remove_user_from_room(room_id, user_id)
-        await room_manager.notify_users_in_room(room_id, {"event": "user-disconnected", "userId": user_id})
+
+
+
+
