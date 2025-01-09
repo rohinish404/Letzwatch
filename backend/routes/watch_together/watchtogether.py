@@ -30,7 +30,6 @@ class Room:
 class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
-        self.users: List[User] = []
 
     def create_room(self, room_id: str):
         if room_id in self.rooms:
@@ -39,27 +38,32 @@ class RoomManager:
 
     async def join_room(self, room_id: str, user: User):
         room = self.rooms.get(room_id)
-        
         if not room:
             raise HTTPException(status_code=404, detail="Room does not exist")
-        # if room.user2 is not None:
-        #     raise HTTPException(status_code=400, detail="Room is full")
-        # if room.user1 is None:
-        #     room.user1 = user
-        # else:
-            # room.user2 = user
         
-        self.users.append(user)
-        if len(self.users) < 2:
-            return  
-        room.user1 = self.users[0]
-        room.user2 = self.users[1]
+        # Assign users to specific room
+        if room.user1 is None:
+            room.user1 = user
+        elif room.user2 is None:
+            room.user2 = user
+            # Emit offer only when second user joins
+            await sio.emit('send-offer', {'roomId': room_id}, room=room.user1.socket_id)
+            await sio.emit('send-offer', {'roomId': room_id}, room=room.user2.socket_id)
+        else:
+            raise HTTPException(status_code=400, detail="Room is full")
+        
+    def remove_user(self, sid: str):
+        # Clean up user from rooms
+        for room_id, room in self.rooms.items():
+            if room.user1 and room.user1.socket_id == sid:
+                room.user1 = None
+            elif room.user2 and room.user2.socket_id == sid:
+                room.user2 = None
+            
+            # Remove empty rooms
+            if not room.user1 and not room.user2:
+                self.rooms.pop(room_id)
 
-        user1 = room.user1
-        user2 = room.user2
-        
-        await sio.emit('send-offer', {'roomId': room_id}, room=user1.socket_id)
-        await sio.emit('send-offer', {'roomId': room_id}, room=user2.socket_id)
 
     def get_room(self, room_id: str):
         return self.rooms.get(room_id)
@@ -83,11 +87,20 @@ async def connect(sid, environ):
 
 @sio.event
 async def join(sid, data):
+    print(data.get("roomId"), data.get("name"))
     await join_room(sid, JoinRoom(room_id=data.get("roomId"), name=data.get("name")))
 
 @sio.event
 async def disconnect(sid):
     print(f"Client disconnected: {sid}")
+    room_manager.remove_user(sid)
+
+    for room in room_manager.rooms.values():
+        if room.user1 and room.user1.socket_id != sid:
+            await sio.emit('peer_disconnected', room=room.user1.socket_id)
+        if room.user2 and room.user2.socket_id != sid:
+            await sio.emit('peer_disconnected', room=room.user2.socket_id)
+
 
 
 @sio.event
@@ -130,15 +143,10 @@ async def add_ice_candidate(sid, data):
         "roomId": room_id
     }, room=receiving_user.socket_id)
 
-
-class CreateRoom(BaseModel):
-    name: str
-
 @router.post("/create_room")
-async def create_room(data: CreateRoom):
+async def create_room():
     from uuid import uuid4
-    room_id = str(uuid4())  # Generate unique room ID
-    user = User(socket_id=None, name=data.name)  # socket_id will be set on connection
+    room_id = str(uuid4())  # Generate unique room Id
     room_manager.create_room(room_id)
     return JSONResponse(content={"roomId": room_id})
 

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@/api';
 import Cookies from 'js-cookie';
 import { login } from '@/store/auth/authSlice';
 import { useDispatch } from 'react-redux';
-import { store } from '@/store/store';
 
 export const LoginPage: React.FC = ()=> {
     const [username, setUsername] = useState('');
@@ -13,6 +12,7 @@ export const LoginPage: React.FC = ()=> {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
 
 
     const formDetails = new URLSearchParams();
@@ -35,7 +35,10 @@ export const LoginPage: React.FC = ()=> {
             localStorage.setItem('token', response.data.access_token)
             Cookies.set("token", response.data.refresh_token, { expires: 30 });
             dispatch(login()); 
-            const from = location.state?.from?.pathname || "/";  
+            const redirectTo = searchParams.get('redirectTo');
+            const from = redirectTo 
+                ? decodeURIComponent(redirectTo)
+                : location.state?.from?.pathname || "/";
             navigate(from);
         } catch (err: any) {
             console.error('Login failed:', err);
