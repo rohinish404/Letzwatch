@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .schemas import MovieSearchResponse, Movie, MovieDetails, Trending, WatchlistAddRequest, WatchlistResponse
+from .schemas import MovieSearchResponse, MovieDetails, Trending, WatchlistResponse, LikeRequest, LikeResponse
 import requests
-from typing import List, Optional, Literal
+from typing import Optional, Literal, List
 from deps import get_current_user
-from models import User
+from models import User, MovieLike
 router = APIRouter(
     tags=["Movies Routes"]
 )
@@ -103,6 +103,57 @@ def get_watchlist(
     ).all()
     movie_ids = [movie_id[0] for movie_id in watchlist_movies] 
     return {"user_id": user_id, "movies": movie_ids}
+
+
+@router.post("/{movie_id}/like", response_model=LikeResponse)
+def like_movie(movie_id: int, like_request: LikeRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id =  current_user.get("user_id")
+    existing_like = db.query(MovieLike).filter(
+        MovieLike.user_id == user_id,
+        MovieLike.movie_id == movie_id
+    ).first()
+
+    if existing_like:
+        existing_like.like = like_request.is_liked
+    else:
+        new_like = MovieLike(user_id=user_id, movie_id=movie_id, like=like_request.is_liked)
+        db.add(new_like)
+    db.commit()
+
+
+    return {
+        "user_id": user_id,
+        "movie_id": movie_id,
+        "like": like_request.is_liked
+    }
+
+#return total dislikes and likes for a movie
+@router.get("/movies/{movie_id}/likes", response_model=dict)
+def get_likes(movie_id: int, db: Session = Depends(get_db)):
+    likes = db.query(MovieLike).filter(MovieLike.movie_id == movie_id, MovieLike.like == True).count()
+    dislikes = db.query(MovieLike).filter(MovieLike.movie_id == movie_id, MovieLike.like == False).count()
+    return {"likes": likes, "dislikes": dislikes}
+
+
+@router.get("/users/me/liked-movies")
+async def get_user_liked_movies(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_id = current_user.get("user_id")
+    
+    liked_movies = db.query(MovieLike.movie_id).filter(
+            MovieLike.user_id == user_id,
+            MovieLike.like == True
+    ).all()
+    disliked_movies = db.query(MovieLike.movie_id).filter(
+            MovieLike.user_id == user_id,
+            MovieLike.like == False
+    ).all()
+    
+    liked_movie_ids = [movie[0] for movie in liked_movies]
+    disliked_movie_ids = [movie[0] for movie in disliked_movies]
+    return {"user_id": user_id, "movies": {"liked":liked_movie_ids, "disliked":disliked_movie_ids}}
 
 
 

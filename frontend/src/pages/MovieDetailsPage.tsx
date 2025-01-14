@@ -1,8 +1,14 @@
 import { MovieDetails } from "@/types";
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BsBookmarkPlus, BsBookmarkPlusFill } from "react-icons/bs";
+import {
+  AiOutlineLike,
+  AiFillLike,
+  AiOutlineDislike,
+  AiFillDislike,
+} from "react-icons/ai";
 import {
   Tooltip,
   TooltipContent,
@@ -13,11 +19,14 @@ import api from "@/api";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { GiAerialSignal } from "react-icons/gi";
+import HandleLikeDislike from "@/components/HandleLikeDislike";
 
 export const MovieDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [movie, setMovie] = useState<MovieDetails>();
   const [isAdded, setIsAdded] = useState(false);
+  const [isLiked, setIsLiked] = useState<boolean | null>(null);
+  const [isDisliked, setIsDisliked] = useState<boolean | null>(null);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
 
@@ -41,9 +50,23 @@ export const MovieDetailsPage: React.FC = () => {
         .catch((error) => {
           console.error(error);
         });
+        api
+        .get(`/movies/users/me/liked-movies`)
+        .then((response) => {
+          const likedMovies = response.data.movies.liked || [];
+          const dislikedMovies = response.data.movies.disliked || [];
+          console.log(likedMovies)
+          if (likedMovies.includes(Number(id))){
+            setIsLiked(true);
+          } else if (dislikedMovies.includes(Number(id))){
+            setIsLiked(false);
+          } 
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
-  }, [id]);
-
+  }, [id, isLoggedIn]);
   const handleAddToWatchlist = () => {
     api
       .post(`/movies/watchlist/${id}`)
@@ -63,6 +86,18 @@ export const MovieDetailsPage: React.FC = () => {
       })
       .catch((error) => {
         console.error("Error removing from watchlist:", error);
+      });
+  };
+
+  const handleLikeDislike = (action: boolean) => {
+    api
+      .post(`/movies/${id}/like`, { is_liked: action })
+      .then((response) => {
+        const updatedStatus = response.data.like;
+        setIsLiked(updatedStatus);
+      })
+      .catch((error) => {
+        console.error("Error liking/disliking movie:", error);
       });
   };
 
@@ -107,6 +142,11 @@ export const MovieDetailsPage: React.FC = () => {
       </div>
       <div className="p-6">
         <h2 className="text-3xl font-bold mb-2">{movie.title}</h2>
+        <HandleLikeDislike
+          isLoggedIn={isLoggedIn}
+          isLiked={isLiked}
+          handleLikeDislike={handleLikeDislike}
+        />
         {isLoggedIn ? (
           <TooltipProvider>
             <Tooltip>
@@ -154,15 +194,20 @@ export const MovieDetailsPage: React.FC = () => {
         </div>
         <p className="text-gray-700 mb-6">{movie.overview}</p>
         <div className="relative bg-gray-900 rounded-lg overflow-hidden">
-        <div style={{ position: 'relative', paddingTop: `calc(100% / (${"16/9"}))` }}>
-          <iframe
-            src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
-            className="absolute top-0 left-0 w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <div
+            style={{
+              position: "relative",
+              paddingTop: `calc(100% / (${"16/9"}))`,
+            }}
+          >
+            {/* <iframe
+              src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
+              className="absolute top-0 left-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            /> */}
+          </div>
         </div>
-      </div>
         {isLoggedIn ? (
           <TooltipProvider>
             <Tooltip>

@@ -107,11 +107,18 @@ class UserOut(BaseModel):
     updated_at: Optional[datetime] = None
     email: Optional[str] = None
 
-# Watchlist request schema
 class WatchlistAddRequest(BaseModel):
     movie_id: int  # ID of the movie to add to the watchlist
 
-# Watchlist response schema
 class WatchlistResponse(BaseModel):
     user_id: int
     movies: Optional[List[int]] = None
+
+
+class LikeRequest(BaseModel):
+    is_liked: bool
+
+class LikeResponse(BaseModel):
+    user_id: int
+    movie_id: int
+    like: bool

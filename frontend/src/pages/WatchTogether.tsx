@@ -22,6 +22,8 @@ const WatchTogether = ({
   const movieId = searchParams.get("movieId");
   // const videoUrl = `https://vidsrc.xyz/embed/movie/${movieId}`
 
+  const [isViewer, setIsViewer] = useState(false);
+
   const [lobby, setLobby] = useState(true);
   const [socket, setSocket] = useState<null | Socket>(null);
   const [sendingPc, setSendingPc] = useState<null | RTCPeerConnection>(null);
@@ -35,8 +37,8 @@ const WatchTogether = ({
   const [remoteMediaStream, setRemoteMediaStream] =
     useState<MediaStream | null>(null);
 
-  const remoteVideoRef = useRef<HTMLVideoElement>();
-  const localVideoRef = useRef<HTMLVideoElement>();
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const socket = io(BACKEND_URL, { path: "/sockets" });
@@ -47,6 +49,15 @@ const WatchTogether = ({
       socket.emit("join", { roomId: roomId, name: String(userId) });
     });
 
+    socket.on("set_role", ({ role }) => {
+      if (role === "viewer") {
+        // Show movie player and hide video chat
+        setIsViewer(true);
+      } else {
+        // Show video chat and hide movie player
+        setIsViewer(false);
+      }
+    });
     socket.on("send-offer", async ({ roomId }) => {
       console.log("sending offer");
       setLobby(false);
@@ -140,8 +151,11 @@ const WatchTogether = ({
         sdp: sdp,
       });
       setTimeout(() => {
+        console.log(pc.getTransceivers())
         const track1 = pc.getTransceivers()[0].receiver.track;
         const track2 = pc.getTransceivers()[1].receiver.track;
+        
+
         console.log(track1);
         if (track1.kind === "video") {
           setRemoteAudioTrack(track2);
@@ -209,36 +223,36 @@ const WatchTogether = ({
       }
     });
     socket.on("peer_disconnected", () => {
-        setLobby(true);
-        if (sendingPc) {
-            sendingPc.close();
-            setSendingPc(null);
-        }
-        if (receivingPc) {
-            receivingPc.close();
-            setReceivingPc(null);
-        }
-        if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = null;
-        }
-        setRemoteVideoTrack(null);
-        setRemoteAudioTrack(null);
-        setRemoteMediaStream(null);
+      setLobby(true);
+      if (sendingPc) {
+        sendingPc.close();
+        setSendingPc(null);
+      }
+      if (receivingPc) {
+        receivingPc.close();
+        setReceivingPc(null);
+      }
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+      setRemoteVideoTrack(null);
+      setRemoteAudioTrack(null);
+      setRemoteMediaStream(null);
     });
 
     setSocket(socket);
 
     return () => {
-        if (sendingPc) {
-            sendingPc.close();
-            setSendingPc(null);
-        }
-        if (receivingPc) {
-            receivingPc.close();
-            setReceivingPc(null);
-        }
-        socket.disconnect();
-    }
+      if (sendingPc) {
+        sendingPc.close();
+        setSendingPc(null);
+      }
+      if (receivingPc) {
+        receivingPc.close();
+        setReceivingPc(null);
+      }
+      socket.disconnect();
+    };
   }, [userId]);
 
   useEffect(() => {
@@ -294,16 +308,20 @@ const WatchTogether = ({
       </div>
 
       {/* Movie Player */}
-      <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-xl">
-        <div className="aspect-video">
-          <iframe
-            src={`https://vidsrc.xyz/embed/movie/${movieId}`}
-            className="absolute top-0 left-0 w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+      {isViewer ? (
+        <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-xl">
+          <div className="aspect-video">
+            <iframe
+              src={`https://vidsrc.xyz/embed/movie/${movieId}`}
+              className="absolute top-0 left-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 };

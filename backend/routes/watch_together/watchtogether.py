@@ -25,6 +25,7 @@ class User:
 class Room:
     user1: User = None
     user2: User = None
+    viewer: User = None 
 
 
 class RoomManager:
@@ -40,30 +41,38 @@ class RoomManager:
         room = self.rooms.get(room_id)
         if not room:
             raise HTTPException(status_code=404, detail="Room does not exist")
-        
-        # Assign users to specific room
+
         if room.user1 is None:
             room.user1 = user
+            room.viewer = user  # First user is the viewer
+            await sio.emit('set_role', {'role': 'viewer'}, room=user.socket_id)
         elif room.user2 is None:
             room.user2 = user
-            # Emit offer only when second user joins
+            await sio.emit('set_role', {'role': 'controller'}, room=user.socket_id)
+            # Notify both users to establish connection
             await sio.emit('send-offer', {'roomId': room_id}, room=room.user1.socket_id)
             await sio.emit('send-offer', {'roomId': room_id}, room=room.user2.socket_id)
         else:
             raise HTTPException(status_code=400, detail="Room is full")
-        
+
     def remove_user(self, sid: str):
-        # Clean up user from rooms
         for room_id, room in self.rooms.items():
             if room.user1 and room.user1.socket_id == sid:
                 room.user1 = None
+                if room.viewer and room.viewer.socket_id == sid:
+                    room.viewer = room.user2  # Assign viewer role to user2
+                    if room.viewer:
+                        sio.emit('set_role', {'role': 'viewer'}, room=room.viewer.socket_id)
             elif room.user2 and room.user2.socket_id == sid:
                 room.user2 = None
-            
-            # Remove empty rooms
+                if room.viewer and room.viewer.socket_id == sid:
+                    room.viewer = room.user1  # Assign viewer role to user1
+                    if room.viewer:
+                        sio.emit('set_role', {'role': 'viewer'}, room=room.viewer.socket_id)
+
+        # Remove empty rooms
             if not room.user1 and not room.user2:
                 self.rooms.pop(room_id)
-
 
     def get_room(self, room_id: str):
         return self.rooms.get(room_id)
