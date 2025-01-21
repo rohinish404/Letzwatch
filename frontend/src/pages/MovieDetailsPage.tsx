@@ -4,12 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { BsBookmarkPlus, BsBookmarkPlusFill } from "react-icons/bs";
 import {
-  AiOutlineLike,
-  AiFillLike,
-  AiOutlineDislike,
-  AiFillDislike,
-} from "react-icons/ai";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -26,7 +20,6 @@ export const MovieDetailsPage: React.FC = () => {
   const [movie, setMovie] = useState<MovieDetails>();
   const [isAdded, setIsAdded] = useState(false);
   const [isLiked, setIsLiked] = useState<boolean | null>(null);
-  const [isDisliked, setIsDisliked] = useState<boolean | null>(null);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
 
