@@ -67,3 +67,10 @@ export interface MovieDetails {
     vote_count: number;
   }
   
+export interface MovieSearchResponse {
+    page: number;
+    results?: Movie[] | null;
+    total_pages?: number | null;
+    total_results?: number | null;
+  }
+  

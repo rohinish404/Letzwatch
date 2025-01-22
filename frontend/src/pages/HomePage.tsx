@@ -7,13 +7,15 @@ import api from '@/api';
 import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
 
+const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
+
 const HomePage: React.FC = () => {
     const [trending, setTrending] = useState<Movie[]>([]);
     const [watchlist, setWatchlist] = useState<Movie[]>([]);
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
     useEffect(() => {
-        axios.get(`${process.env.BACKEND_API_URL}/movies/trending/week`)
+        axios.get(`${BACKEND_API_URL}/movies/trending/week`)
             .then(response => {
                 setTrending(response.data?.results);
             })
@@ -28,7 +30,7 @@ const HomePage: React.FC = () => {
             .then(async response => {
                 const movieIds = response.data.movies;
                 const detailsPromises = movieIds.map((movieId: number) =>
-                    axios.get(`${process.env.BACKEND_API_URL}/movies/${movieId}`)
+                    axios.get(`${BACKEND_API_URL}/movies/${movieId}`)
                 );
 
                 const detailsResponses = await Promise.all(detailsPromises);

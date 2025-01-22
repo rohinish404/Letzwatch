@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
+
 export const SignupPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -13,7 +15,7 @@ export const SignupPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${process.env.BACKEND_API_URL}/auth/signup`, 
+            const response = await axios.post(`${BACKEND_API_URL}/auth/signup`, 
                 {
                     'email': email,
                     'username': username,

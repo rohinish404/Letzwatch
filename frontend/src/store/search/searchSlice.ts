@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { MovieSearchResponse } from '@/types';
 
 export interface Movie {
     adult: boolean;
@@ -17,12 +18,7 @@ export interface Movie {
     vote_count?: number | null;
   }
   
-interface MovieSearchResponse {
-    page: number;
-    results?: Movie[] | null;
-    total_pages?: number | null;
-    total_results?: number | null;
-  }
+
 
   const initialState: MovieSearchResponse = {
     page: 1,

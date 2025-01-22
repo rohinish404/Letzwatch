@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 
 const BACKEND_URL = "http://localhost:8000";
+const VIDSRC_API_URL = import.meta.env.VITE_VIDSRC_API_URL;
 
 const WatchTogether = ({
   name,
@@ -20,7 +21,7 @@ const WatchTogether = ({
 }) => {
   const [searchParams] = useSearchParams();
   const movieId = searchParams.get("movieId");
-  const videoUrl = `${process.env.VIDSRC_API_URL}/movie/${movieId}`
+  const videoUrl = `${VIDSRC_API_URL}/movie/${movieId}`
 
   const [isViewer, setIsViewer] = useState(false);
 

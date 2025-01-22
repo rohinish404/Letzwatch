@@ -1,6 +1,8 @@
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
+const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
+
 export const setToken = (token: string) => {
     localStorage.setItem('token', token);
   };
@@ -22,7 +24,7 @@ export const setToken = (token: string) => {
       const refresh_token = Cookies.get('token');
       console.log(refresh_token);
       const body = {token: String(refresh_token)}
-      const response =  await axios.post(`${process.env.BACKEND_API_URL}/auth/refresh_token`, body,
+      const response =  await axios.post(`${BACKEND_API_URL}/auth/refresh_token`, body,
         {
           headers: {
             'Content-Type': 'application/json',
