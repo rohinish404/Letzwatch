@@ -1,5 +1,4 @@
 import { MovieCard } from '@/components/MovieCard';
-// import { MovieDetails } from '@/components/MovieDetailsCard';
 import { Movie } from '@/types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -12,17 +11,9 @@ const HomePage: React.FC = () => {
     const [trending, setTrending] = useState<Movie[]>([]);
     const [watchlist, setWatchlist] = useState<Movie[]>([]);
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-    // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-
-    // const handleSelectMovie = (movie: Movie) => {
-    //     setSelectedMovie(movie);
-    // };
-    // const handleCloseDetails = () => {
-    //     setSelectedMovie(null);
-    // };
 
     useEffect(() => {
-        axios.get('http://localhost:8000/api/v1/movies/trending/week')
+        axios.get(`${process.env.BACKEND_API_URL}/movies/trending/week`)
             .then(response => {
                 setTrending(response.data?.results);
             })
@@ -37,7 +28,7 @@ const HomePage: React.FC = () => {
             .then(async response => {
                 const movieIds = response.data.movies;
                 const detailsPromises = movieIds.map((movieId: number) =>
-                    axios.get(`http://localhost:8000/api/v1/movies/${movieId}`)
+                    axios.get(`${process.env.BACKEND_API_URL}/movies/${movieId}`)
                 );
 
                 const detailsResponses = await Promise.all(detailsPromises);
@@ -80,9 +71,6 @@ const HomePage: React.FC = () => {
                         </div>
                     )}
                 </section>
-                {/* {selectedMovie && (
-                    <MovieDetails movie={selectedMovie} />
-                )} */}
             </main>
         </div>
     )

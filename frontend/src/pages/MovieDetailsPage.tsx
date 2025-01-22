@@ -25,7 +25,7 @@ export const MovieDetailsPage: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8000/api/v1/movies/${id}`)
+      .get(`${process.env.BACKEND_API_URL}/movies/${id}`)
       .then((response) => {
         setMovie(response.data);
       })
@@ -96,7 +96,7 @@ export const MovieDetailsPage: React.FC = () => {
 
   const handleWatchTogether = async () => {
     const roomResponse = await axios.post(
-      "http://localhost:8000/api/v1/watch/create_room"
+      `${process.env.BACKEND_API_URL}/watch/create_room`
     );
     const roomId = roomResponse.data.roomId;
 
@@ -193,12 +193,12 @@ export const MovieDetailsPage: React.FC = () => {
               paddingTop: `calc(100% / (${"16/9"}))`,
             }}
           >
-            {/* <iframe
-              src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
+            <iframe
+              src={`${process.env.VIDSRC_API_URL}/movie/${movie.id}`}
               className="absolute top-0 left-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-            /> */}
+            />
           </div>
         </div>
         {isLoggedIn ? (

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const SignupPage: React.FC = () => {
@@ -13,7 +13,7 @@ export const SignupPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/auth/signup', 
+            const response = await axios.post(`${process.env.BACKEND_API_URL}/auth/signup`, 
                 {
                     'email': email,
                     'username': username,

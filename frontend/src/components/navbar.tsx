@@ -26,7 +26,7 @@ export const Navbar: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    axios.get('http://localhost:8000/api/v1/movies/search', {
+    axios.get(`${process.env.BACKEND_API_URL}/movies/search`, {
       params: {
         query: searchQuery,
         include_adult: isAdult,

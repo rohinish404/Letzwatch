@@ -1,6 +1,4 @@
-import axios, { InternalAxiosRequestConfig } from 'axios';
-import { useLayoutEffect } from 'react';
-import { getToken, refreshAccessToken } from './utils';
+import axios from 'axios';
 
 
 const api = axios.create({

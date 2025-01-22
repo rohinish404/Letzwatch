@@ -1,5 +1,4 @@
 import Cookies from 'js-cookie';
-import api from "./api";
 import axios from 'axios';
 
 export const setToken = (token: string) => {
@@ -23,7 +22,7 @@ export const setToken = (token: string) => {
       const refresh_token = Cookies.get('token');
       console.log(refresh_token);
       const body = {token: String(refresh_token)}
-      const response =  await axios.post('http://localhost:8000/api/v1/auth/refresh_token', body,
+      const response =  await axios.post(`${process.env.BACKEND_API_URL}/auth/refresh_token`, body,
         {
           headers: {
             'Content-Type': 'application/json',

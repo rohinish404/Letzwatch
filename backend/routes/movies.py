@@ -5,15 +5,21 @@ import requests
 from typing import Optional, Literal, List
 from deps import get_current_user
 from models import User, MovieLike
+from models import Watchlist
+from database import get_db
+import os
+
 router = APIRouter(
     tags=["Movies Routes"]
 )
-from models import Watchlist
-from database import get_db
+
+
+TMBD_API_URL = os.getenv('TMBD_API_URL')
+
 @router.get("/search", response_model=Optional[MovieSearchResponse])
 async def get_movies(query: str,
     include_adult: bool = False):
-    url = f"https://api.themoviedb.org/3/search/movie?include_adult={include_adult}&language=en-US&page=1"
+    url = f"{TMBD_API_URL}/search/movie?include_adult={include_adult}&language=en-US&page=1"
 
     headers = {
         "accept": "application/json",
@@ -28,7 +34,7 @@ async def get_movies(query: str,
 
 @router.get("/{movie_id}", response_model=Optional[MovieDetails])
 async def get_movie_details(movie_id: int):
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    url = f"{TMBD_API_URL}/movie/{movie_id}"
 
     headers = {
         "accept": "application/json",
@@ -40,7 +46,7 @@ async def get_movie_details(movie_id: int):
 
 @router.get("/trending/{time_window}", response_model=Optional[Trending])
 async def get_trending(time_window: Literal["week"]):
-    url = f"https://api.themoviedb.org/3/trending/movie/{time_window}"
+    url = f"{TMBD_API_URL}/trending/movie/{time_window}"
     headers = {
             "accept": "application/json",
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"

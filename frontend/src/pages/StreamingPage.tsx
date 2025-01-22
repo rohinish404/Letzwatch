@@ -10,7 +10,6 @@ const StreamingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("roomId");
   const location = useLocation();
-  // const userId = searchParams.get("userId");
 
   const [name, setName] = useState("");
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -55,7 +54,6 @@ const StreamingPage: React.FC = () => {
     }
     videoRef.current.srcObject = new MediaStream([videoTrack]);
     videoRef.current.play();
-    // MediaStream
   };
 
   useEffect(() => {

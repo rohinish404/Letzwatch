@@ -20,7 +20,7 @@ const WatchTogether = ({
 }) => {
   const [searchParams] = useSearchParams();
   const movieId = searchParams.get("movieId");
-  // const videoUrl = `https://vidsrc.xyz/embed/movie/${movieId}`
+  const videoUrl = `${process.env.VIDSRC_API_URL}/movie/${movieId}`
 
   const [isViewer, setIsViewer] = useState(false);
 
@@ -51,10 +51,8 @@ const WatchTogether = ({
 
     socket.on("set_role", ({ role }) => {
       if (role === "viewer") {
-        // Show movie player and hide video chat
         setIsViewer(true);
       } else {
-        // Show video chat and hide movie player
         setIsViewer(false);
       }
     });
@@ -114,7 +112,7 @@ const WatchTogether = ({
       setRemoteMediaStream(stream);
       // trickle ice
       setReceivingPc(pc);
-      window.pcr = pc;
+      // window.pcr = pc;
       pc.ontrack = (e) => {
         alert("ontrack");
         // console.error("inside ontrack");
@@ -266,14 +264,11 @@ const WatchTogether = ({
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header */}
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
         Watch Together
       </h1>
 
-      {/* Video Chat Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Local Video */}
         <div className="relative rounded-lg overflow-hidden bg-gray-800">
           <video
             ref={localVideoRef}
@@ -286,7 +281,6 @@ const WatchTogether = ({
           </div>
         </div>
 
-        {/* Remote Video or Lobby */}
         <div className="relative rounded-lg overflow-hidden bg-gray-800">
           {lobby ? (
             <div className="flex items-center justify-center h-full min-h-[300px]">
@@ -307,12 +301,11 @@ const WatchTogether = ({
         </div>
       </div>
 
-      {/* Movie Player */}
       {isViewer ? (
         <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-xl">
           <div className="aspect-video">
             <iframe
-              src={`https://vidsrc.xyz/embed/movie/${movieId}`}
+              src={videoUrl}
               className="absolute top-0 left-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

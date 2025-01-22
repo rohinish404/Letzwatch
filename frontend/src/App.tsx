@@ -1,11 +1,11 @@
 import { Navbar } from './components/Navbar';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { MovieDetailsPage } from './pages/MovieDetailsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage'
-import { getToken, isAuthenticated, refreshAccessToken, removeToken } from './utils';
+import { getToken, isAuthenticated, refreshAccessToken } from './utils';
 import api from './api';
 import { InternalAxiosRequestConfig } from 'axios';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -80,7 +80,15 @@ const App: React.FC = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/stream" element={<StreamingPage />} />
-            <Route path="/watch" element={<WatchTogether />} />
+            <Route path="/watch" element={
+              <WatchTogether 
+                name=""
+                localAudioTrack={null}
+                localVideoTrack={null}
+                roomId={null}
+                userId={null}
+              />
+            } />
           </Routes>
         </main>
       </div>
