@@ -14,6 +14,7 @@ REFRESH_TOKEN_EXPIRE_MINUTES = 30
 ALGORITHM = "HS256"
 JWT_SECRET_KEY = str(os.getenv('JWT_SECRET_KEY'))
 JWT_REFRESH_SECRET_KEY = str(os.getenv('JWT_REFRESH_SECRET_KEY'))
+TMBD_BEARER_TOKEN = os.getenv('TMBD_BEARER_TOKEN')
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -49,7 +50,7 @@ def fetch_genres():
     url = "https://api.themoviedb.org/3/genre/movie/list"
     headers = {
         "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
+        "Authorization": f"Bearer {TMBD_BEARER_TOKEN}"
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:

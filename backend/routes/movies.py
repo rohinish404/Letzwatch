@@ -15,6 +15,7 @@ router = APIRouter(
 
 
 TMBD_API_URL = os.getenv('TMBD_API_URL')
+TMBD_BEARER_TOKEN = os.getenv('TMBD_BEARER_TOKEN')
 
 def get_genre_names(genre_ids: List[int]) -> List[str]:
     """Map genre IDs to genre names using the GenreEnum."""
@@ -33,7 +34,7 @@ async def get_movies(query: str,
 
     headers = {
         "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
+        "Authorization": f"Bearer {TMBD_BEARER_TOKEN}"
     }
     params = {
         "query": query
@@ -44,7 +45,6 @@ async def get_movies(query: str,
         if "genre_ids" in movie:
             genre_names = get_genre_names(movie["genre_ids"])
             movie["genres"] =  [Genre(id=i, name=j) for i, j in zip(movie["genre_ids"], genre_names)]
-            # print(get_genre_names(movie["genre_ids"]))
     return data
 
 @router.get("/{movie_id}", response_model=Optional[MovieDetails])
@@ -53,7 +53,7 @@ async def get_movie_details(movie_id: int):
 
     headers = {
         "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
+        "Authorization": f"Bearer {TMBD_BEARER_TOKEN}"
     }
     response = requests.get(url, headers=headers)
     data = response.json()
@@ -68,7 +68,7 @@ async def get_trending(time_window: Literal["week"]):
     url = f"{TMBD_API_URL}/trending/movie/{time_window}"
     headers = {
             "accept": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
+            "Authorization": f"Bearer {TMBD_BEARER_TOKEN}"
         }
     response = requests.get(url, headers=headers)
     print(response.text)
