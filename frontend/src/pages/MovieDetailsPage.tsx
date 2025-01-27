@@ -189,12 +189,12 @@ export const MovieDetailsPage: React.FC = () => {
             {/* Video Player */}
             <div className="relative bg-gray-800 rounded-lg overflow-hidden mb-8">
               <div className="relative" style={{ paddingTop: "56.25%" }}>
-                {/* <iframe
+                <iframe
                   src={`${VIDSRC_API_URL}/movie/${movie.id}`}
                   className="absolute top-0 left-0 w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                /> */}
+                />
               </div>
             </div>
           </div>
