@@ -3,9 +3,10 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Union, Any
 from jose import jwt
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 import logging
 from dotenv import load_dotenv
+import requests
 load_dotenv
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30*600
@@ -43,6 +44,20 @@ def decode_token(token: str):
         return token_data
     except jwt.JWTError as e:
         logging.exception(e)
+        
+def fetch_genres():
+    url = "https://api.themoviedb.org/3/genre/movie/list"
+    headers = {
+        "accept": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        genres = response.json().get("genres", [])
+        return {genre["name"]: genre["id"] for genre in genres}
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch genres")
+
 
 
 

@@ -1,7 +1,13 @@
+export interface Genre {
+  id: number;
+  name: string;
+}
+
 export interface Movie {
     adult: boolean;
     backdrop_path?: string;
-    genre_ids: number[];            
+    genre_ids: number[];  
+    genres: Genre[];          
     id: number;                      
     original_language: string;       
     original_title: string;
@@ -14,11 +20,6 @@ export interface Movie {
     vote_average: number;            
     vote_count: number;             
 }
-
-export interface Genre {
-    id: number;
-    name: string;
-  }
   
 export interface ProductionCompany {
     id: number;
@@ -66,7 +67,7 @@ export interface MovieDetails {
     vote_average: number;
     vote_count: number;
   }
-  
+
 export interface MovieSearchResponse {
     page: number;
     results?: Movie[] | null;

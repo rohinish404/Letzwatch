@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .schemas import MovieSearchResponse, MovieDetails, Trending, WatchlistResponse, LikeRequest, LikeResponse
+from .schemas import MovieSearchResponse, MovieDetails, Trending, WatchlistResponse, LikeRequest, LikeResponse, GenreEnum, Genre
 import requests
 from typing import Optional, Literal, List
 from deps import get_current_user
@@ -16,6 +16,16 @@ router = APIRouter(
 
 TMBD_API_URL = os.getenv('TMBD_API_URL')
 
+def get_genre_names(genre_ids: List[int]) -> List[str]:
+    """Map genre IDs to genre names using the GenreEnum."""
+    genre_names = []
+    for genre_id in genre_ids:
+        for genre in GenreEnum:
+            if genre.value == genre_id:
+                genre_names.append(genre.name)
+                break
+    return genre_names
+
 @router.get("/search", response_model=Optional[MovieSearchResponse])
 async def get_movies(query: str,
     include_adult: bool = False):
@@ -29,8 +39,13 @@ async def get_movies(query: str,
         "query": query
     }
     response = requests.get(url, headers=headers, params=params)
-    print(response.text)
-    return response.json()
+    data = response.json()
+    for movie in data.get("results", []):
+        if "genre_ids" in movie:
+            genre_names = get_genre_names(movie["genre_ids"])
+            movie["genres"] =  [Genre(id=i, name=j) for i, j in zip(movie["genre_ids"], genre_names)]
+            # print(get_genre_names(movie["genre_ids"]))
+    return data
 
 @router.get("/{movie_id}", response_model=Optional[MovieDetails])
 async def get_movie_details(movie_id: int):
@@ -41,8 +56,12 @@ async def get_movie_details(movie_id: int):
         "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDg3ODljNzU1YzM1YzNmMWRhZDcwMGU2ZDk0MmNkNSIsIm5iZiI6MTczMjk0NjQ1Ni4xNDgsInN1YiI6IjY3NGFhYTE4MWU2MWU5MjdkZTE4YzQ0YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.E5ZEr567DUBtfeLL5xDXdZD918JJwSyiNUD7166THNw"
     }
     response = requests.get(url, headers=headers)
-    print(response.text)
-    return response.json()
+    data = response.json()
+    for movie in data.get("results", []):
+        if "genre_ids" in movie:
+            movie["genre_names"] = get_genre_names(movie["genre_ids"])
+            print(get_genre_names(movie["genre_ids"]))
+    return data
 
 @router.get("/trending/{time_window}", response_model=Optional[Trending])
 async def get_trending(time_window: Literal["week"]):

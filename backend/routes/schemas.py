@@ -2,11 +2,22 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
+from enum import Enum
+from utils import fetch_genres
+
+
+genres_dict = fetch_genres()
+GenreEnum = Enum('GenreEnum', genres_dict)
+
+class Genre(BaseModel):
+    id: int
+    name: Optional[str] = None
 
 class Movie(BaseModel):
     adult: bool
     backdrop_path: Optional[str] = None
-    genre_ids: Optional[List[int]] = None
+    genre_ids: Optional[List[GenreEnum]] = None
+    genres: Optional[List[Genre]] = None
     id: int
     original_language: Optional[str] = None
     original_title: Optional[str] = None
@@ -25,9 +36,7 @@ class MovieSearchResponse(BaseModel):
     total_pages: Optional[int] = None
     total_results: Optional[int] = None
 
-class Genre(BaseModel):
-    id: int
-    name: Optional[str] = None
+
 
 class ProductionCompany(BaseModel):
     id: int
