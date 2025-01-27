@@ -302,7 +302,6 @@ const WatchTogether = ({
         </div>
       </div>
 
-      {isViewer ? (
         <div className="relative bg-gray-900 rounded-lg overflow-hidden shadow-xl">
           <div className="aspect-video">
             <iframe
@@ -313,9 +312,6 @@ const WatchTogether = ({
             />
           </div>
         </div>
-      ) : (
-        <div></div>
-      )}
     </div>
   );
 };

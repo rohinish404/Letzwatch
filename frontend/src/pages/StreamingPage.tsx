@@ -1,22 +1,27 @@
-import { useRef, useState } from "react";
-import { useEffect } from "react";
-import WatchTogether from "./WatchTogether";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import api from "@/api";
 import { useSelector } from "react-redux";
+import WatchTogether from "./WatchTogether";
+import api from "@/api";
 import { RootState } from "@/store/store";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Copy } from "lucide-react";
 
 const StreamingPage: React.FC = () => {
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("roomId");
+  const movieId = searchParams.get("movieId");
   const location = useLocation();
 
   const [name, setName] = useState("");
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const [localAudioTrack, setLocalAudioTrack] =
-    useState<MediaStreamTrack | null>(null);
-  const [localVideoTrack, setlocalVideoTrack] =
-    useState<MediaStreamTrack | null>(null);
+  const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null);
+  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [joined, setJoined] = useState(false);
@@ -24,11 +29,28 @@ const StreamingPage: React.FC = () => {
   const [userId, setUserId] = useState<string | null>("");
   const navigate = useNavigate();
 
-  console.log(isLoggedIn);
+  const shareableUrl = `${window.location.origin}${location.pathname}?roomId=${roomId}&movieId=${movieId}`;
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareableUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Stream URL has been copied to clipboard",
+        duration: 3000,
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the URL manually",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
 
   useEffect(() => {
-    api
-      .get("/auth/me")
+    api.get("/auth/me")
       .then((userResponse) => {
         setUserId(userResponse.data.user_id);
       })
@@ -44,7 +66,6 @@ const StreamingPage: React.FC = () => {
       video: true,
       audio: true,
     });
-    // MediaStream
     const audioTrack = stream.getAudioTracks()[0];
     const videoTrack = stream.getVideoTracks()[0];
     setLocalAudioTrack(audioTrack);
@@ -62,35 +83,81 @@ const StreamingPage: React.FC = () => {
     }
   }, [videoRef]);
 
+  const handleJoinRoom = () => {
+    setJoined(true);
+    toast({
+      title: "Share this stream",
+      description: (
+        <div className="flex items-center gap-2">
+          <span className="truncate max-w-[200px]">{shareableUrl}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2"
+            onClick={copyToClipboard}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      duration: 5000,
+    });
+  };
+
   if (!joined) {
     return (
-      <div>
-        <video autoPlay ref={videoRef}></video>
-        <input
-          type="text"
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        ></input>
-        <button
-          onClick={() => {
-            setJoined(true);
-          }}
-        >
-          Join
-        </button>
-      </div>
+      <>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl font-semibold text-center">
+                Join Room
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 shadow-inner">
+                <video
+                  autoPlay
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <Input
+                  type="text"
+                  placeholder="Enter your display name"
+                  className="w-full text-lg h-12"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                
+                <Button 
+                  className="w-full h-12 text-lg font-medium"
+                  onClick={handleJoinRoom}
+                >
+                  Join Room
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Toaster />
+      </>
     );
   }
 
   return (
-    <WatchTogether
-      name={name}
-      localAudioTrack={localAudioTrack}
-      localVideoTrack={localVideoTrack}
-      roomId={roomId}
-      userId={userId}
-    />
+    <>
+      <WatchTogether
+        name={name}
+        localAudioTrack={localAudioTrack}
+        localVideoTrack={localVideoTrack}
+        roomId={roomId}
+        userId={userId}
+      />
+      <Toaster />
+    </>
   );
 };
 
