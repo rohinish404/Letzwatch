@@ -1,8 +1,12 @@
 # LetzWatch - Movie Streaming app
 
-A concept app which lets users watch movies on a video call.
+A concept app which lets people watch movies on a video call.
 
 ## Demo
+
+
+https://github.com/user-attachments/assets/d2047df2-c13a-4b74-8cf6-10425e6d3158
+
 
 
 ## Tech and Libraries/Frameworks Used 
@@ -88,20 +92,17 @@ Install dependencies and run.
 
 ### Local ports
 
-Frontend - http://localhost:5173/
+Frontend - http://localhost:5173/ <br />
 Backend - http://localhost:8000/docs
 
 
 ## Features that can be improved/implemented
 
-[] Pagination and other sections such as trending, upcoming, etc.
-[] Real-time Recommendation system for *For You* / *Discover* section.
-[] More robust video call logic. Current implementation of webrtc is mostly referenced from [this](https://github.com/hkirat/omegle)
-[] Actuall controls for movies between users on video call. (currently not possible because vidsrc provides with its own player).
-[] Chat feature while video calling.
-
-
-
+[ ] Pagination and other sections such as trending, upcoming, etc. <br />
+[ ] Real-time Recommendation system for *For You* / *Discover* section. <br />
+[ ] More robust video call logic. Current implementation of webrtc is mostly referenced from [this](https://github.com/hkirat/omegle). <br />
+[ ] Actuall controls for movies between users on video call. (currently not possible because vidsrc provides with its own player). <br />
+[ ] Chat feature while video calling. <br />
 
 
 
